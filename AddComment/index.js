@@ -1,23 +1,61 @@
-module.exports = async function (context, req) {
+getListId = require('./getListId');
+postComment = require('./postComment');
+getUsername = require('./getUsername');
+
+module.exports = function (context, req) {
     context.log('JavaScript HTTP trigger function processed a request.');
 
-    let token = null;
-    let sentiment = "unknown";
+    let token = context.bindings.graphToken;
+    let username = getUsername(req);
 
-    if (req.body && 
+    if (req.body &&
         req.body.siteId &&
         req.body.comment) {
 
-            context.res = {
-                // status: 200, /* Defaults to 200 */
-                body: "Hello " + req.body.siteId + ': ' + req.body.comment
-            };
-         
-    }
-    else {
+        context.log('Got token');
+
+        getListId(context, token, req.body.siteId)
+            .then((listId) => {
+
+                context.log('Got list ID' + listId);
+                return postComment(token,
+                    req.body.siteId,
+                    listId,
+                    req.body.comment);
+
+            })
+            .then(resp => {
+
+                context.log('Successfully posted');
+                context.res = {
+                    // status: 200, /* Defaults to 200 */
+                    body: {
+                        message: `POSTED on behalf of ${username}`
+                    }
+                };
+                context.done();
+
+            })
+            .catch(error => {
+
+                // Error encountered - return failure
+                context.log(`Error encountered ${error}`);
+                context.res = {
+                    status: 400,
+                    body: {
+                        "message": "ERROR: " + error
+                    }
+                };
+                context.done();
+
+            });
+
+    } else {
         context.res = {
+
             status: 400,
             body: "Please pass a site ID and comment on the query string or in the request body"
+            
         };
     }
 };

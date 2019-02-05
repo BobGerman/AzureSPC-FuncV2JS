@@ -12,6 +12,13 @@
       ]
     },
     {
+      "type": "token",
+      "direction": "in",
+      "name": "graphToken",
+      "resource": "https://graph.microsoft.com",
+      "identity": "ClientCredentials"
+    },
+    {
       "type": "http",
       "direction": "out",
       "name": "res"
