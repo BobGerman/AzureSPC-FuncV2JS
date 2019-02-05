@@ -1,27 +1,33 @@
 getListId = require('./getListId');
 postComment = require('./postComment');
 getUsername = require('./getUsername');
+getSentiment = require ('./getSentiment');
 
 module.exports = function (context, req) {
     context.log('JavaScript HTTP trigger function processed a request.');
 
     let token = context.bindings.graphToken;
     let username = getUsername(req);
+    let comment = "";
 
     if (req.body &&
         req.body.siteId &&
         req.body.comment) {
 
-        context.log('Got token');
+        comment = req.body.comment;
 
-        getListId(context, token, req.body.siteId)
+        getSentiment(context, comment)
+            .then((sentiment) => {
+                comment = `${comment} (${sentiment})`;
+                return getListId(context, token, req.body.siteId);
+            })
             .then((listId) => {
 
                 context.log('Got list ID' + listId);
                 return postComment(token,
                     req.body.siteId,
                     listId,
-                    req.body.comment);
+                    comment);
 
             })
             .then(resp => {
