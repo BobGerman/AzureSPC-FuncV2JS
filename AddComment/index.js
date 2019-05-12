@@ -14,7 +14,7 @@ module.exports = function (context, req) {
         req.body.siteId &&
         req.body.comment) {
 
-        comment = req.body.comment;
+        comment = `${req.body.comment} - ${this.getUsername(req)}`;
 
         getSentiment(context, comment)
             .then((sentiment) => {
